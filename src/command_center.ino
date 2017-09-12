@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
+//
 // This example only works with Arduino IDE 1.6.8 or later.
 
 #include <ESP8266WiFi.h>
