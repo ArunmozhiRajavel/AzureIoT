@@ -164,6 +164,7 @@ void command_center_run(void)
     
     digitalWrite(greenLedPin, greenLedState);
     pinMode(greenLedPin, OUTPUT);
+    digitalWrite(greenLedPin, LOW);
 
     if (serializer_init(NULL) != SERIALIZER_OK)
     {
