@@ -51,7 +51,7 @@ void initWifi() {
     }
 
     Serial.println("Connected to wifi");
-    Serial.println("Let us see if this comes in the screen");
+    Serial.println("Let us see if this comes in the screen.One more time");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
