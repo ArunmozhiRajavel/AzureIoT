@@ -72,7 +72,7 @@ void initWifi() {
   }
 
   Serial.println("Connected to wifi");
-  Serial.println("New firmware v3");
+  Serial.println("New firmware v5");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,15 +155,15 @@ void checkForUpdate() {
     client.loop();
     delay(1000);
     if (updateFirmware) {
+      client.publish("firmwareupdate", "0");
       Serial.println("Updating firmware");
       digitalWrite(LED_BUILTIN, LOW);
       t_httpUpdate_return ret = ESPhttpUpdate.update("http://s3.ap-south-1.amazonaws.com/iotci/Fimware/firmware.bin", "v1");
       switch (ret) {
         case HTTP_UPDATE_FAILED:
-          client.publish("firmwareupdate", "0");
           Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
           break;
-
+          
         case HTTP_UPDATE_NO_UPDATES:
           Serial.println("HTTP_UPDATE_NO_UPDATES");
           break;
