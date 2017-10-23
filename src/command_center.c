@@ -94,7 +94,6 @@ void sendCallback(IOTHUB_CLIENT_CONFIRMATION_RESULT result, void* userContextCal
     LogInfo("Result Call Back Called! Result is: %s \r\n", ENUM_TO_STRING(IOTHUB_CLIENT_CONFIRMATION_RESULT, result));
 }
 
-
 static void sendMessage(IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle, const unsigned char* buffer, size_t size)
 {
     static unsigned int messageTrackingId;
@@ -164,7 +163,6 @@ void command_center_run(void)
     
     digitalWrite(greenLedPin, greenLedState);
     pinMode(greenLedPin, OUTPUT);
-    digitalWrite(greenLedPin, LOW);
 
     if (serializer_init(NULL) != SERIALIZER_OK)
     {
@@ -172,6 +170,7 @@ void command_center_run(void)
     }
     else
     {
+        LogInfo("Entered");
         IOTHUB_CLIENT_LL_HANDLE iotHubClientHandle = IoTHubClient_LL_CreateFromConnectionString(connectionString, MQTT_Protocol);
         srand((unsigned int)time(NULL));
         int avgWindSpeed = 10.0;
