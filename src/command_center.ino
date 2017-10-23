@@ -28,70 +28,71 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 long lastMsg = 0;
 char msg[50];
-int value = 0;
+int count = 0;
 void callback(char* topic, byte* payload, unsigned int length);
 
 int status = WL_IDLE_STATUS;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
-    initSerial();
-    initWifi();
-    initTime();
-    client.setServer(mqtt_server, 1883);
-    client.setCallback(callback);
+  initSerial();
+  initWifi();
+  initTime();
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
 
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void loop() {
-    // This function doesn't exit.
-     checkForUpdate();
+  // This function doesn't exit.
+  checkForUpdate();
+  //command_center_run();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void initSerial() {
-    // Start serial and initialize stdout
-    Serial.begin(115200);
-    Serial.setDebugOutput(true);
+  // Start serial and initialize stdout
+  Serial.begin(115200);
+  Serial.setDebugOutput(true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void initWifi() {
-    // Attempt to connect to Wifi network:
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
+  // Attempt to connect to Wifi network:
+  Serial.print("Attempting to connect to SSID: ");
+  Serial.println(ssid);
 
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid, pass);
+  // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+  status = WiFi.begin(ssid, pass);
 
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(".");
-    }
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
 
-    Serial.println("Connected to wifi");
-    Serial.println("New firmware");
+  Serial.println("Connected to wifi");
+  Serial.println("New firmware v3");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 void initTime() {
-    time_t epochTime;
+  time_t epochTime;
 
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+  configTime(0, 0, "pool.ntp.org", "time.nist.gov");
 
-    while (true) {
-        epochTime = time(NULL);
+  while (true) {
+    epochTime = time(NULL);
 
-        if (epochTime == 0) {
-            Serial.println("Fetching NTP epoch time failed! Waiting 2 seconds to retry.");
-            delay(2000);
-        } else {
-            Serial.print("Fetched NTP epoch time is: ");
-            Serial.println(epochTime);
-            break;
-        }
+    if (epochTime == 0) {
+      Serial.println("Fetching NTP epoch time failed! Waiting 2 seconds to retry.");
+      delay(2000);
+    } else {
+      Serial.print("Fetched NTP epoch time is: ");
+      Serial.println(epochTime);
+      break;
     }
+  }
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -131,7 +132,7 @@ void reconnect() {
       // Once connected, publish an announcement...
       client.publish("outTopic", "hello world");
       // ... and resubscribe
-      client.subscribe("inTopic");
+      client.subscribe("firmwareupdate");
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -142,46 +143,54 @@ void reconnect() {
   }
 }
 
-void checkForUpdate(){
-    if (!client.connected())
-    {
-      Serial.println("Connecting to MQTT server");
-      reconnect();
+void checkForUpdate() {
+  reconnect();
+  if (!client.connected())
+  {
+    Serial.println("Connecting to MQTT server");
+    reconnect();
+  }
+  else
+  {
+    client.loop();
+    delay(1000);
+    if (updateFirmware) {
+      Serial.println("Updating firmware");
+      digitalWrite(LED_BUILTIN, LOW);
+      t_httpUpdate_return ret = ESPhttpUpdate.update("http://s3.ap-south-1.amazonaws.com/iotci/Fimware/firmware.bin", "v1");
+      switch (ret) {
+        case HTTP_UPDATE_FAILED:
+          client.publish("firmwareupdate", "0");
+          Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+          break;
+
+        case HTTP_UPDATE_NO_UPDATES:
+          Serial.println("HTTP_UPDATE_NO_UPDATES");
+          break;
+
+        case HTTP_UPDATE_OK:
+          Serial.println("HTTP_UPDATE_OK");
+          client.publish("firmwareupdate", "2");
+          digitalWrite(LED_BUILTIN, HIGH);
+          delay(50);
+          updateFirmware = 0;
+          command_center_run();
+          //ESP.restart();
+          break;
+      }
     }
     else
     {
-      client.loop();
-      client.subscribe("firmwareupdate");
-      if (updateFirmware) {
-        Serial.println("Updating firmware");
-        digitalWrite(LED_BUILTIN, LOW);
-        t_httpUpdate_return ret = ESPhttpUpdate.update("https://s3.ap-south-1.amazonaws.com/iotci/Fimware/firmware.bin", "v1");
-        switch (ret) {
-          case HTTP_UPDATE_FAILED:
-            Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-            client.publish("firmwareupdate", "0");
-            break;
-
-          case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("HTTP_UPDATE_NO_UPDATES");
-            break;
-
-          case HTTP_UPDATE_OK:
-            Serial.println("HTTP_UPDATE_OK");
-            client.publish("firmwareupdate", "2");
-            digitalWrite(LED_BUILTIN, HIGH);
-            delay(50);
-            updateFirmware = 0;
-            //ESP.restart();
-            command_center_run();
-            break;
-        }
+      Serial.println("No update found");
+      if (count > 5) {
+        command_center_run();
       }
       else
       {
-        Serial.println("No update found");
+        count++;
       }
     }
+  }
 }
 
 
