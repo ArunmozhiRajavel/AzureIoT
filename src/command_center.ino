@@ -155,7 +155,7 @@ void checkForUpdate() {
     client.loop();
     delay(1000);
     if (updateFirmware) {
-      client.publish("firmwareupdate", "0");
+      client.publish("firmwareupdate", "0", true);
       Serial.println("Updating firmware");
       digitalWrite(LED_BUILTIN, LOW);
       t_httpUpdate_return ret = ESPhttpUpdate.update("http://s3.ap-south-1.amazonaws.com/iotci/Fimware/firmware.bin", "v1");
