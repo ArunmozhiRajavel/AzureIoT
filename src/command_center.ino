@@ -183,6 +183,7 @@ void checkForUpdate() {
     {
       Serial.println("No update found");
       if (count > 5) {
+        client.disconnect();
         command_center_run();
       }
       else
