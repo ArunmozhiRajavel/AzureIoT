@@ -72,7 +72,7 @@ void initWifi() {
   }
 
   Serial.println("Connected to wifi");
-  Serial.println("New firmware v7.3 - final check");
+  Serial.println("New firmware v7.4 - initial check");
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
