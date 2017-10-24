@@ -17,7 +17,7 @@
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
 
-const char firmware_version[] = "7.7";
+const char firmware_version[] = "8";
 const char ssid[] = "InfyIoT"; //  your WiFi SSID (name)
 const char pass[] = "20072117";    // your WiFi password (use for WPA, or use as key for WEP)
 const char connectionString[] = "HostName=InfyIoTHub.azure-devices.net;DeviceId=InfyTempCheck;SharedAccessKey=f1mLnJDGNL08+Wvn183ETJpu4o27ZyQkmvaEY+wEzDI=";
